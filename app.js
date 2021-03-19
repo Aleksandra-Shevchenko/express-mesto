@@ -1,6 +1,6 @@
 const ERROR_CODE_VALIDATION = 400;
 const ERROR_CODE_CAST = 404;
-const ERROR_CODE_SERVER = 404;
+const ERROR_CODE_SERVER = 500;
 
 const express = require('express');
 const mongoose = require('mongoose');
