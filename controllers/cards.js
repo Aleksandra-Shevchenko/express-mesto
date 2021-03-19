@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const NotFoundError = require('../errors/notFoundError');
 
 const getCards = (req, res, next) => {
   Card.find({})
@@ -22,7 +23,12 @@ const createCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then(() => res.send({ message: 'Пост удалён' }))
+    .then((card) => {
+      if (!card) {
+        throw new NotFoundError('Карточка с указанным _id не найдена');
+      }
+      res.send({ message: 'Пост удалён' });
+    })
     .catch(next);
 };
 
@@ -34,7 +40,7 @@ const likeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        throw new Error();
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
       res.send(card);
     })
@@ -49,7 +55,7 @@ const dislikeCard = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        throw new Error();
+        throw new NotFoundError('Карточка с указанным _id не найдена');
       }
       res.send(card);
     })

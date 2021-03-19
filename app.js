@@ -1,11 +1,7 @@
-const ERROR_CODE_VALIDATION = 400;
-const ERROR_CODE_CAST = 404;
-const ERROR_CODE_SERVER = 500;
-
 const express = require('express');
 const mongoose = require('mongoose');
-const cardRouter = require('./routes/cards');
-const userRouter = require('./routes/users');
+const router = require('./routes');
+const { ERROR_CODE_VALIDATION, ERROR_CODE_SERVER } = require('./errors/errorsStatus');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -28,24 +24,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// роуты
-app.use('/users', userRouter);
-app.use('/cards', cardRouter);
+// корневой роут
+app.use(router);
 
 // обрабатываем ошибки
 app.use((err, req, res, next) => {
-  console.log(err);
-  if (err.name === 'CastError' || err.name === 'Error') {
-    res.status(ERROR_CODE_CAST)
-      .send({ message: 'карточка или пользователь по указанному _id не найден' });
+  if (err.name === 'CastError') {
+    res.status(ERROR_CODE_VALIDATION)
+      .send({ message: 'Переданы некорректные данные' });
   } else if (err.name === 'ValidationError') {
     res.status(ERROR_CODE_VALIDATION)
       .send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
   } else {
-    res.status(ERROR_CODE_SERVER).send({ message: 'на сервере произошла ошибка' });
+    const { statusCode = ERROR_CODE_SERVER, message } = err;
+    res.status(statusCode)
+      .send({ message: statusCode === ERROR_CODE_SERVER ? 'На сервере произошла ошибка' : message });
   }
+  next();
 });
 
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
-});
+app.listen(PORT, () => PORT);
