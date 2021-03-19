@@ -1,9 +1,11 @@
-const express = require('express');
-const mongoose = require('mongoose');
-
 const ERROR_CODE_VALIDATION = 400;
 const ERROR_CODE_CAST = 404;
 const ERROR_CODE_SERVER = 404;
+
+const express = require('express');
+const mongoose = require('mongoose');
+const cardRouter = require('./routes/cards');
+const userRouter = require('./routes/users');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -17,6 +19,7 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useNewUrlParser: true,
   useCreateIndex: true,
   useFindAndModify: false,
+  useUnifiedTopology: true,
 });
 
 // добавляем в каждый запрос объект user
@@ -25,24 +28,22 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/users', require('./routes/users'));
-app.use('/cards', require('./routes/cards'));
+// роуты
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
 
 // обрабатываем ошибки
 app.use((err, req, res, next) => {
   console.log(err);
-  if (err.name === 'CastError') {
+  if (err.name === 'CastError' || err.name === 'Error') {
     res.status(ERROR_CODE_CAST)
-      .send({ message: 'Карточка или пользователь не найден' });
-  }
-  if (err.name === 'ValidationError') {
+      .send({ message: 'карточка или пользователь по указанному _id не найден' });
+  } else if (err.name === 'ValidationError') {
     res.status(ERROR_CODE_VALIDATION)
-      .send({
-        message: `Переданы некорректные данные в методы создания карточки,
-          пользователя, обновления аватара пользователя или профиля`,
-      });
+      .send({ message: `${Object.values(err.errors).map((error) => error.message).join(', ')}` });
+  } else {
+    res.status(ERROR_CODE_SERVER).send({ message: 'на сервере произошла ошибка' });
   }
-  res.status(ERROR_CODE_SERVER).send({ message: 'На сервере произошла ошибка' });
 });
 
 app.listen(PORT, () => {

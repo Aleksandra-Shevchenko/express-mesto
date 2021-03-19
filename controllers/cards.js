@@ -1,12 +1,17 @@
 const Card = require('../models/card');
 
-module.exports.getCards = (req, res, next) => {
+const getCards = (req, res, next) => {
   Card.find({})
-    .then((cards) => res.send(cards))
+    .then((cards) => {
+      res.send(cards.map((card) => {
+        const { name, link, likes, owner, _id, createdAt } = card;
+        return { name, link, likes, owner, _id, createdAt };
+      }));
+    })
     .catch(next);
 };
 
-module.exports.createCard = (req, res, next) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
 
@@ -15,28 +20,46 @@ module.exports.createCard = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.deleteCard = (req, res, next) => {
+const deleteCard = (req, res, next) => {
   Card.findByIdAndRemove(req.params.cardId)
     .then(() => res.send({ message: 'Пост удалён' }))
     .catch(next);
 };
 
-module.exports.likeCard = (req, res, next) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        throw new Error();
+      }
+      res.send(card);
+    })
     .catch(next);
 };
 
-module.exports.dislikeCard = (req, res, next) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } }, // убрать _id из массива
+    { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => res.send(card))
+    .then((card) => {
+      if (!card) {
+        throw new Error();
+      }
+      res.send(card);
+    })
     .catch(next);
+};
+
+module.exports = {
+  getCards,
+  createCard,
+  deleteCard,
+  likeCard,
+  dislikeCard,
 };

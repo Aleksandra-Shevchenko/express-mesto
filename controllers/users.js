@@ -1,27 +1,36 @@
 const User = require('../models/user');
 
-module.exports.getUsers = (req, res, next) => {
+const getUsers = (req, res, next) => {
   User.find({})
-    .then((users) => res.send(users))
-    .catch(next);
-};
-
-module.exports.findUser = (req, res, next) => {
-  User.findById(req.params.userId)
-    .then(({ name, about, avatar, _id }) => {
-      res.send({ name, about, avatar, _id });
+    .then((users) => {
+      res.send(users.map((user) => {
+        const { name, about, avatar, _id } = user;
+        return { _id, name, about, avatar };
+      }));
     })
     .catch(next);
 };
 
-module.exports.createUser = (req, res, next) => {
+const findUser = (req, res, next) => {
+  User.findById(req.params.userId)
+    .then((user) => {
+      if (!user) {
+        throw new Error();
+      }
+      const { _id, name, about, avatar } = user;
+      res.send({ _id, name, about, avatar });
+    })
+    .catch(next);
+};
+
+const createUser = (req, res, next) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
     .then((user) => res.send(user))
     .catch(next);
 };
 
-module.exports.updateUserProfile = (req, res, next) => {
+const updateUserProfile = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -31,11 +40,16 @@ module.exports.updateUserProfile = (req, res, next) => {
       runValidators: true,
     },
   )
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new Error();
+      }
+      res.send(user);
+    })
     .catch(next);
 };
 
-module.exports.updateUserAvatar = (req, res, next) => {
+const updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
@@ -45,6 +59,19 @@ module.exports.updateUserAvatar = (req, res, next) => {
       runValidators: true,
     },
   )
-    .then((user) => res.send(user))
+    .then((user) => {
+      if (!user) {
+        throw new Error();
+      }
+      res.send(user);
+    })
     .catch(next);
+};
+
+module.exports = {
+  getUsers,
+  findUser,
+  createUser,
+  updateUserProfile,
+  updateUserAvatar,
 };
