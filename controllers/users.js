@@ -5,8 +5,18 @@ const getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.send(users.map((user) => {
-        const { name, about, avatar, _id } = user;
-        return { _id, name, about, avatar };
+        const {
+          name,
+          about,
+          avatar,
+          _id,
+        } = user;
+        return {
+          _id,
+          name,
+          about,
+          avatar,
+        };
       }));
     })
     .catch(next);
@@ -18,8 +28,18 @@ const findUser = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      const { _id, name, about, avatar } = user;
-      res.send({ _id, name, about, avatar });
+      const {
+        _id,
+        name,
+        about,
+        avatar,
+      } = user;
+      res.send({
+        _id,
+        name,
+        about,
+        avatar,
+      });
     })
     .catch(next);
 };

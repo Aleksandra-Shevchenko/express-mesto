@@ -5,8 +5,22 @@ const getCards = (req, res, next) => {
   Card.find({})
     .then((cards) => {
       res.send(cards.map((card) => {
-        const { name, link, likes, owner, _id, createdAt } = card;
-        return { name, link, likes, owner, _id, createdAt };
+        const {
+          name,
+          link,
+          likes,
+          owner,
+          _id,
+          createdAt,
+        } = card;
+        return {
+          name,
+          link,
+          likes,
+          owner,
+          _id,
+          createdAt,
+        };
       }));
     })
     .catch(next);
