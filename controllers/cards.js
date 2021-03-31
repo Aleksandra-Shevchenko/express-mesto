@@ -29,6 +29,7 @@ const getCards = (req, res, next) => {
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
   const owner = req.user._id;
+  console.log(req.user);
 
   Card.create({ name, link, owner })
     .then((card) => res.send(card))
@@ -36,15 +37,42 @@ const createCard = (req, res, next) => {
 };
 
 const deleteCard = (req, res, next) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      res.send({ message: 'Пост удалён' });
+      if (String(card.owner) !== String(req.user._id)) {
+        console.log(card.owner !== req.user._id);
+        throw new NotFoundError('Недостаточно прав для удаления');
+      }
+      card.remove();
+      res.send({ message: 'Пост удален' });
     })
     .catch(next);
 };
+
+
+// const deleteCard = (req, res, next) => {
+//   Card.findById(req.params.cardId)
+//     .then((card) => {
+//       if (!card) {
+//         throw new NotFoundError('Карточка с указанным _id не найдена');
+//       }
+//       if (String(card.owner) !== String(req.user._id)) {
+//         console.log(card.owner !== req.user._id);
+//         throw new NotFoundError('Удалять можно только свои карточки');
+//       }
+//       return card;
+//     })
+//     .then((card) => {
+//       Card.findByIdAndRemove(card._id)
+//         .then(() => {
+//           res.send({ message: 'Пост удален' });
+//         });
+//     })
+//     .catch(next);
+// };
 
 const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(

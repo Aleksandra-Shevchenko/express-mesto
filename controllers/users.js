@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/notFoundError');
 
@@ -28,26 +30,39 @@ const findUser = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь по указанному _id не найден');
       }
-      const {
-        _id,
-        name,
-        about,
-        avatar,
-      } = user;
-      res.send({
-        _id,
-        name,
-        about,
-        avatar,
-      });
+      res.send(user);
     })
     .catch(next);
 };
 
 const createUser = (req, res, next) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send(user))
+  const { name, about, avatar, email, password } = req.body;
+  bcrypt.hash(password, 10) // хешируем пароль
+    .then((hash) => User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    }))
+    .then((user) => res.send(user.toJSON()))
+    .catch(next);
+};
+
+const login = (req, res, next) => {
+  const { email, password } = req.body;
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'd6b5d9064c9d700530a9421b4db0c066', { expiresIn: '7d' });
+      res
+        .cookie('token', token, {
+          // token - наш JWT токен, который мы отправляем
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+        })
+        //.end(); // если у ответа нет тела, можно использовать метод end
+      return res.send({ token });
+    })
     .catch(next);
 };
 
@@ -89,10 +104,24 @@ const updateUserAvatar = (req, res, next) => {
     .catch(next);
 };
 
+// не работает надо исправить!!!!!
+const currentUser = (req, res, next) => {
+  const { id } = req.user._id;
+  console.log(id);
+
+  User.findById(id)
+    .then((user) => {
+      res.send(user);
+    })
+    .catch(next);
+};
+
 module.exports = {
   getUsers,
   findUser,
   createUser,
   updateUserProfile,
   updateUserAvatar,
+  login,
+  currentUser,
 };
