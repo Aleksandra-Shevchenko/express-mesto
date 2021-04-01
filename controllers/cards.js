@@ -3,35 +3,17 @@ const NotFoundError = require('../errors/notFoundError');
 
 const getCards = (req, res, next) => {
   Card.find({})
+    .populate('owner')
     .then((cards) => {
-      res.send(cards.map((card) => {
-        const {
-          name,
-          link,
-          likes,
-          owner,
-          _id,
-          createdAt,
-        } = card;
-        return {
-          name,
-          link,
-          likes,
-          owner,
-          _id,
-          createdAt,
-        };
-      }));
+      res.send(cards.map((card) => card));
     })
     .catch(next);
 };
 
 const createCard = (req, res, next) => {
   const { name, link } = req.body;
-  const owner = req.user._id;
-  console.log(req.user);
 
-  Card.create({ name, link, owner })
+  Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send(card))
     .catch(next);
 };
@@ -42,8 +24,7 @@ const deleteCard = (req, res, next) => {
       if (!card) {
         throw new NotFoundError('Карточка с указанным _id не найдена');
       }
-      if (String(card.owner) !== String(req.user._id)) {
-        console.log(card.owner !== req.user._id);
+      if (String(card.owner._id) !== String(req.user._id)) {
         throw new NotFoundError('Недостаточно прав для удаления');
       }
       card.remove();
@@ -51,28 +32,6 @@ const deleteCard = (req, res, next) => {
     })
     .catch(next);
 };
-
-
-// const deleteCard = (req, res, next) => {
-//   Card.findById(req.params.cardId)
-//     .then((card) => {
-//       if (!card) {
-//         throw new NotFoundError('Карточка с указанным _id не найдена');
-//       }
-//       if (String(card.owner) !== String(req.user._id)) {
-//         console.log(card.owner !== req.user._id);
-//         throw new NotFoundError('Удалять можно только свои карточки');
-//       }
-//       return card;
-//     })
-//     .then((card) => {
-//       Card.findByIdAndRemove(card._id)
-//         .then(() => {
-//           res.send({ message: 'Пост удален' });
-//         });
-//     })
-//     .catch(next);
-// };
 
 const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
