@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const NoRightsError = require('../errors/noRightsError');
 const NotFoundError = require('../errors/notFoundError');
 
 const getCards = (req, res, next) => {
@@ -20,12 +21,10 @@ const createCard = (req, res, next) => {
 
 const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
+    .orFail(new NotFoundError('Карточка с указанным _id не найдена'))
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
-      }
       if (String(card.owner._id) !== String(req.user._id)) {
-        throw new NotFoundError('Недостаточно прав для удаления');
+        throw new NoRightsError('Недостаточно прав для удаления');
       }
       card.remove();
       res.send({ message: 'Пост удален' });
@@ -39,12 +38,8 @@ const likeCard = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
-      }
-      res.send(card);
-    })
+    .orFail(new NotFoundError('Карточка с указанным _id не найдена'))
+    .then((card) => res.send(card))
     .catch(next);
 };
 
@@ -54,12 +49,8 @@ const dislikeCard = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка с указанным _id не найдена');
-      }
-      res.send(card);
-    })
+    .orFail(new NotFoundError('Карточка с указанным _id не найдена'))
+    .then((card) => res.send(card))
     .catch(next);
 };
 

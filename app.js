@@ -1,11 +1,10 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const { errors } = require('celebrate');
 
 const router = require('./routes');
 const { ERROR_CODE_VALIDATION, ERROR_CODE_SERVER, ERROR_CODE_USER_EXIST } = require('./errors/errorsStatus');
-const { createUser, login } = require('./controllers/users');
-const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -24,15 +23,11 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   autoIndex: true,
 });
 
-// роуты, не требующие авторизации
-app.post('/signup', createUser);
-app.post('/signin', login);
-
-// авторизация
-app.use(auth);
-
-// корневой роут карточки и пользователи
+// корневой роут
 app.use(router);
+
+// обработчики ошибок celebrate
+app.use(errors());
 
 // обрабатываем ошибки
 app.use((err, req, res, next) => {

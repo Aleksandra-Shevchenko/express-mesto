@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const { validateUser, validateUserProfile, validateUserAvatar } = require('../middlewares/validation');
+
 const {
   getUsers,
   findUser,
@@ -14,12 +16,12 @@ router.get('/', getUsers);
 router.get('/me', findCurrentUser);
 
 // возвращает пользователя по _id
-router.get('/:userId', findUser);
+router.get('/:userId', validateUser, findUser);
 
 // обновляет профиль
-router.patch('/me', updateUserProfile);
+router.patch('/me', validateUserProfile, updateUserProfile);
 
 // обновляет аватар
-router.patch('/me/avatar', updateUserAvatar);
+router.patch('/me/avatar', validateUserAvatar, updateUserAvatar);
 
 module.exports = router;
