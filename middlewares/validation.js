@@ -1,5 +1,6 @@
 const { celebrate, Joi } = require('celebrate');
 const { ObjectId } = require('mongoose').Types;
+const validator = require('validator');
 
 // вспомогательная ф-ия проверки id
 const checkedId = Joi.string()
@@ -7,6 +8,21 @@ const checkedId = Joi.string()
   .custom((value, helpers) => {
     if (ObjectId.isValid(value)) return value;
     return helpers.message('Невалидный id');
+  });
+
+// вспомогательная ф-ия проверки email
+const checkedEmail = Joi.string()
+  .required()
+  .custom((value, helpers) => {
+    if (validator.isEmail(value)) return value;
+    return helpers.message('Неверный формат почты');
+  });
+
+// вспомогательная ф-ия проверки ссылки
+const checkedLink = Joi.string()
+  .custom((value, helpers) => {
+    if (validator.isURL(value)) return value;
+    return helpers.message('Неверный формат ссылки на изображение');
   });
 
 const validateAuth = celebrate({
@@ -18,7 +34,7 @@ const validateAuth = celebrate({
 const validateCreateCard = celebrate({
   body: Joi.object().keys({
     name: Joi.string().required().min(2).max(30),
-    link: Joi.string().required().uri(),
+    link: checkedLink,
   }),
 });
 
@@ -43,26 +59,29 @@ const validateUserProfile = celebrate({
 
 const validateUserAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().uri(),
+    avatar: checkedLink,
   }),
 });
 
 const validateSignup = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
+    email: checkedEmail,
     password: Joi.string().required().min(4),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().uri(),
+    avatar: checkedLink,
   }),
 });
 
 const validateSignin = celebrate({
   body: Joi.object().keys({
-    email: Joi.string().required().email(),
+    email: checkedEmail,
     password: Joi.string().required().min(4),
   }),
 });
+
+// регулярка для проверки ссылок
+const redexLink = /^https?:\/\/(www\.)?([a-z0-9-]*\.)?([a-z0-9-]*)\.([a-z0-9-]*)(\/([\w\-.~:/?#[]@!\$&'\(\)\*\+,;=])*)?/;
 
 module.exports = {
   validateCreateCard,
@@ -73,4 +92,5 @@ module.exports = {
   validateAuth,
   validateUserProfile,
   validateUserAvatar,
+  redexLink,
 };

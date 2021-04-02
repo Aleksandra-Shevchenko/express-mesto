@@ -1,7 +1,9 @@
+/* eslint-disable no-param-reassign */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/notFoundError');
+const ValidationError = require('../errors/validationError');
 
 // вспомогательная ф-ия удаления пустых полей в запросе
 const deleteEmptyField = (obj) => {
@@ -55,7 +57,13 @@ const createUser = (req, res, next) => {
     email,
     password,
   } = req.body;
-  bcrypt.hash(password, 10) // хешируем пароль
+
+  if (!password) {
+    throw new ValidationError('Пароль отсутствует');
+  }
+
+  // хешируем пароль
+  bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name,
       about,

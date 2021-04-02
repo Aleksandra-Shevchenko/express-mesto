@@ -2,9 +2,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
-
 const router = require('./routes');
-const { ERROR_CODE_VALIDATION, ERROR_CODE_SERVER, ERROR_CODE_USER_EXIST } = require('./errors/errorsStatus');
+const {
+  ERROR_CODE_VALIDATION,
+  ERROR_CODE_SERVER,
+  ERROR_CODE_USER_EXIST,
+} = require('./errors/errorsStatus');
 
 const { PORT = 3000 } = process.env;
 const app = express();

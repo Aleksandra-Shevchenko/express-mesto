@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const validator = require('validator');
 const AuthError = require('../errors/authError');
+const { redexLink } = require('../middlewares/validation');
 
 // описание схемы пользователя
 const userSchema = new mongoose.Schema({
@@ -23,6 +24,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     required: false,
+    validate: {
+      validator: (v) => redexLink.test(v),
+      message: 'Неверный формат ссылки на изображение',
+    },
   },
   email: {
     type: String,
@@ -41,6 +46,7 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+// поиск пользователя в базе по введенным данным
 userSchema.statics.findUserByCredentials = function getUserIfAuth(email, password) {
   return this.findOne({ email }).select('+password')
     .then((user) => {
@@ -57,6 +63,7 @@ userSchema.statics.findUserByCredentials = function getUserIfAuth(email, passwor
     });
 };
 
+// удаляем из документа пользователя поле password
 userSchema.methods.toJSON = function noShowPassword() {
   const obj = this.toObject();
   delete obj.password;
