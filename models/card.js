@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { redexLink } = require('../middlewares/validation');
+const validator = require('validator');
 
 // описание схемы карточки
 const cardSchema = new mongoose.Schema({
@@ -13,7 +13,7 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: [true, 'ссылка на фото обязательна'],
     validate: {
-      validator: (v) => redexLink.test(v),
+      validator: (v) => validator.isURL(v),
       message: 'Неверный формат ссылки на изображение',
     },
   },

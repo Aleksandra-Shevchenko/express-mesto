@@ -80,9 +80,6 @@ const validateSignin = celebrate({
   }),
 });
 
-// регулярка для проверки ссылок
-const redexLink = /^https?:\/\/(www\.)?([a-z0-9-]*\.)?([a-z0-9-]*)\.([a-z0-9-]*)(\/([\w\-.~:/?#[]@!\$&'\(\)\*\+,;=])*)?/;
-
 module.exports = {
   validateCreateCard,
   validateCard,
@@ -92,5 +89,4 @@ module.exports = {
   validateAuth,
   validateUserProfile,
   validateUserAvatar,
-  redexLink,
 };

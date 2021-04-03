@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/notFoundError');
 const ValidationError = require('../errors/validationError');
+const UserExistError = require('../errors/userExistError');
 
 // вспомогательная ф-ия удаления пустых полей в запросе
 const deleteEmptyField = (obj) => {
@@ -39,7 +40,12 @@ const findUser = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(new NotFoundError('Пользователь по указанному _id не найден'))
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new ValidationError('Переданы некорректные данные id пользователя'));
+      }
+      next(err);
+    });
 };
 
 const findCurrentUser = (req, res, next) => {
@@ -58,8 +64,8 @@ const createUser = (req, res, next) => {
     password,
   } = req.body;
 
-  if (!password) {
-    throw new ValidationError('Пароль отсутствует');
+  if (!password || password.length < 4) {
+    throw new ValidationError('Пароль отсутствует или короче четырех символов');
   }
 
   // хешируем пароль
@@ -72,7 +78,15 @@ const createUser = (req, res, next) => {
       password: hash,
     }))
     .then((user) => res.send(user.toJSON()))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      }
+      if (err.name === 'MongoError' && err.code === 11000) {
+        next(new UserExistError('Пользователь с таким email уже существует'));
+      }
+      next(err);
+    });
 };
 
 const login = (req, res, next) => {
@@ -96,11 +110,9 @@ const login = (req, res, next) => {
 
 const updateUserProfile = (req, res, next) => {
   deleteEmptyField(req.body);
-
   User.findByIdAndUpdate(
     req.user._id,
-    req.body,
-    {
+    req.body, {
       new: true,
       runValidators: true,
     },
@@ -109,7 +121,12 @@ const updateUserProfile = (req, res, next) => {
     .then((user) => {
       res.send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      }
+      next(err);
+    });
 };
 
 const updateUserAvatar = (req, res, next) => {
@@ -125,7 +142,12 @@ const updateUserAvatar = (req, res, next) => {
   )
     .orFail(new NotFoundError('Пользователь по указанному _id не найден'))
     .then((user) => res.send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new ValidationError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      }
+      next(err);
+    });
 };
 
 module.exports = {
