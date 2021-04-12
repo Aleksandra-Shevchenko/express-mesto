@@ -43,8 +43,9 @@ const findUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new ValidationError('Переданы некорректные данные id пользователя'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -81,11 +82,11 @@ const createUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
-      }
-      if (err.name === 'MongoError' && err.code === 11000) {
+      } else if (err.name === 'MongoError' && err.code === 11000) {
         next(new UserExistError('Пользователь с таким email уже существует'));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -124,8 +125,9 @@ const updateUserProfile = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
@@ -145,8 +147,9 @@ const updateUserAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new ValidationError(`${Object.values(err.errors).map((error) => error.message).join(', ')}`));
+      } else {
+        next(err);
       }
-      next(err);
     });
 };
 
