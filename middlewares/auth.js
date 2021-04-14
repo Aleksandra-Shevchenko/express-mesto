@@ -4,12 +4,11 @@ const jwt = require('jsonwebtoken');
 const AuthError = require('../errors/authError');
 
 const auth = (req, res, next) => {
-  const { authorization } = req.headers;
+  const { token } = req.cookies;
 
-  if (!authorization || !authorization.startsWith('Bearer ')) {
+  if (!token) {
     return next(new AuthError('Токен остутствует или некорректен'));
   }
-  const token = authorization.replace('Bearer ', '');
 
   let payload;
   try {

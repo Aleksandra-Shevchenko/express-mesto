@@ -1,9 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const cors = require('cors');
+
 const cookieParser = require('cookie-parser');
 const { errors } = require('celebrate');
 const router = require('./routes');
 const handleErrors = require('./middlewares/error-handler');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
 const app = express();
@@ -22,8 +25,19 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   autoIndex: true,
 });
 
+// логгер запросов
+app.use(requestLogger);
+
+app.use(cors({
+  origin: 'http://localhost:3001',
+  credentials: true,
+}));
+
 // корневой роут
 app.use(router);
+
+// логгер ошибок
+app.use(errorLogger);
 
 // обработчики ошибок celebrate
 app.use(errors());
