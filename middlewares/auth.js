@@ -1,3 +1,5 @@
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 // код для авторизации запроса
 
 const jwt = require('jsonwebtoken');
@@ -12,7 +14,7 @@ const auth = (req, res, next) => {
 
   let payload;
   try {
-    payload = jwt.verify(token, 'd6b5d9064c9d700530a9421b4db0c066');
+    payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
   } catch (err) {
     next(new AuthError('Токен не верифицирован, авторизация не пройдена'));
   }

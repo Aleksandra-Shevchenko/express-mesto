@@ -1,4 +1,6 @@
 /* eslint-disable no-param-reassign */
+const { NODE_ENV, JWT_SECRET } = process.env;
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
@@ -96,7 +98,7 @@ const login = (req, res, next) => {
     .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
-        'd6b5d9064c9d700530a9421b4db0c066',
+        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
         { expiresIn: '7d' },
       );
       res
