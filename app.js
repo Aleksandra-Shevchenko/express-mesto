@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const helmet = require('helmet');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
@@ -13,6 +14,8 @@ const corsOption = require('./middlewares/cors');
 
 const { PORT = 3000 } = process.env;
 const app = express();
+
+app.use(helmet());
 
 // парсим данные (собираем пакеты)
 app.use(express.json());
@@ -33,6 +36,13 @@ app.use(requestLogger);
 
 // cors запросы
 app.use(cors(corsOption));
+
+// краш-тест сервера
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
+});
 
 // корневой роут
 app.use(router);
