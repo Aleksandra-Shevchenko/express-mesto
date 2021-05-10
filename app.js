@@ -37,13 +37,6 @@ app.use(requestLogger);
 // cors запросы
 app.use(cors(corsOption));
 
-// краш-тест сервера
-app.get('/crash-test', () => {
-  setTimeout(() => {
-    throw new Error('Сервер сейчас упадёт');
-  }, 0);
-});
-
 // корневой роут
 app.use(router);
 
